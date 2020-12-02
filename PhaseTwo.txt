@@ -578,7 +578,7 @@ class Deck
    // Accessor for individual cards
    public Card inspectCard(int k)
    {
-      if (k < 0 || k > topCard - 1)
+      if (k < 0 || k > topCard)
       {
          Card badCard = new Card();
          badCard.set('M',Card.Suit.clubs);
