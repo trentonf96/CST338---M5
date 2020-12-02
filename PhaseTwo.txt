@@ -1,0 +1,677 @@
+import java.util.*;
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.*;
+   
+class Assig5 
+{
+   // Data
+   static final int NUM_CARD_IMAGES = 57;
+   static Icon[] icon = new ImageIcon[NUM_CARD_IMAGES];
+      
+   // Constructs each file name and associates the card image with an icon object
+   static void loadCardIcons()
+   {
+      for (int val = 0; val <= 14; val++)
+      {
+         for (int suit = 0; suit < 4; suit++)
+         {
+            if(val == 14)
+            {
+               icon[suit + (4 * val)] = new ImageIcon("images/BK.gif");
+               break;
+            }
+            else
+            {
+               icon[suit + (4 * val)] = new ImageIcon("images/" + 
+               turnIntIntoCardValue(val) + turnIntIntoCardSuit(suit) + ".gif");
+            }
+         }
+      }
+   }
+   
+   // turns 0 - 13 into "A", "2", "3", ... "Q", "K", "X"
+   static String turnIntIntoCardValue(int k)
+   {
+      String val = "A23456789TJQKX";
+      return val.substring(k, k + 1);
+   }
+   
+   // turns 0 - 3 into "C", "D", "H", "S"
+   static String turnIntIntoCardSuit(int j)
+   {
+      String suit = "CDHS";
+      return suit.substring(j, j + 1);
+   }
+   
+   static Card randomCardGenerator()
+   {
+      Deck deck = new Deck();
+      return deck.inspectCard(deck.rand.nextInt(deck.getNumCards()));
+   }
+   
+   /*
+   // a simple main to throw all the JLabels out there for the world to see
+   public static void main(String[] args)
+   {
+      int k;
+      
+      // prepare the image icon array
+      loadCardIcons();
+      
+      // establish main frame in which program will run
+      JFrame frmMyWindow = new JFrame("Card Room");
+      frmMyWindow.setSize(1150, 650);
+      frmMyWindow.setLocationRelativeTo(null);
+      frmMyWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      
+      // set up layout which will control placement of buttons, etc.
+      FlowLayout layout = new FlowLayout(FlowLayout.CENTER, 5, 20);   
+      frmMyWindow.setLayout(layout);
+      
+      // prepare the image label array
+      JLabel[] labels = new JLabel[NUM_CARD_IMAGES];
+      for (k = 0; k < NUM_CARD_IMAGES; k++)
+         labels[k] = new JLabel(icon[k]);
+      
+      // place your 3 controls into frame
+      for (k = 0; k < NUM_CARD_IMAGES; k++)
+         frmMyWindow.add(labels[k]);
+
+      // show everything to the user
+      frmMyWindow.setVisible(true);
+   }
+   */
+   static int NUM_CARDS_PER_HAND = 7;
+   static int  NUM_PLAYERS = 2;
+   static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
+   static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];  
+   static JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
+   static JLabel[] playLabelText  = new JLabel[NUM_PLAYERS]; 
+   
+   public static void main(String[] args)
+   {
+      int k;
+      Icon tempIcon;
+      
+      GUICard.loadCardIcons();
+      
+      // establish main frame in which program will run
+      CardTable myCardTable 
+         = new CardTable("CardTable", NUM_CARDS_PER_HAND, NUM_PLAYERS);
+      myCardTable.setSize(800, 600);
+      myCardTable.setLocationRelativeTo(null);
+      myCardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+      // CREATE LABELS ----------------------------------------------------
+      for (k = 0; k < NUM_CARDS_PER_HAND; k++)
+      {
+         // deal back cards to computer
+         computerLabels[k] = new JLabel(GUICard.getBackCardIcon());
+
+         // give human random cards       
+         humanLabels[k] = new JLabel(GUICard.getIcon(randomCardGenerator()));
+      }
+   
+      // ADD LABELS TO PANELS -----------------------------------------
+      for (k = 0; k < NUM_CARDS_PER_HAND; k++)
+      {
+         // deal back cards to computer
+         myCardTable.pnlComputerHand.add(computerLabels[k]);
+
+         // give human random cards       
+         myCardTable.pnlHumanHand.add(humanLabels[k]);
+      }
+      
+      playedCardLabels[0] = new JLabel(GUICard.getIcon(randomCardGenerator()));
+      playedCardLabels[1] = new JLabel(GUICard.getIcon(randomCardGenerator()));
+      playLabelText[0] = new JLabel("Computer");
+      playLabelText[0].setHorizontalAlignment(JLabel.CENTER);
+      playLabelText[1] = new JLabel("You");
+      playLabelText[1].setHorizontalAlignment(JLabel.CENTER);
+      myCardTable.pnlPlayArea.add(playedCardLabels[0]);
+      myCardTable.pnlPlayArea.add(playedCardLabels[1]);
+      myCardTable.pnlPlayArea.add(playLabelText[0]);
+      myCardTable.pnlPlayArea.add(playLabelText[1]);
+
+      // show everything to the user
+      myCardTable.setVisible(true);
+   }
+}
+
+class CardTable extends JFrame
+{
+   static int MAX_CARDS_PER_HAND = 56;
+   static int MAX_PLAYERS = 2;  // for now, we only allow 2 person games
+   
+   private int numCardsPerHand;
+   private int numPlayers;
+
+   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+   
+   public int getNumCards()
+   {
+      return numCardsPerHand;
+   }
+   
+   public int getNumPlayers()
+   {
+      return numPlayers;
+   }
+   
+   CardTable(String title, int numCardsPerHand, int numPlayers) 
+   {
+      super(title);
+      this.numPlayers = numPlayers; 
+      this.numCardsPerHand = numCardsPerHand; 
+
+      setLayout(new BorderLayout()); 
+
+      TitledBorder compBorder = BorderFactory.createTitledBorder("Computer Hand");
+      pnlComputerHand = new JPanel(new GridLayout(1, numCardsPerHand));
+      pnlComputerHand.setBorder(compBorder);
+      add(pnlComputerHand, BorderLayout.NORTH);
+         
+      TitledBorder humanBorder = BorderFactory.createTitledBorder("Your Hand");
+      pnlHumanHand = new JPanel(new GridLayout(1, numCardsPerHand));
+      pnlHumanHand.setBorder(humanBorder);
+      add(pnlHumanHand, BorderLayout.SOUTH);
+         
+      TitledBorder playBorder = BorderFactory.createTitledBorder("Playing Area");
+      pnlPlayArea = new JPanel(new GridLayout(2, numPlayers));
+      pnlPlayArea.setBorder(playBorder);
+      add(pnlPlayArea, BorderLayout.CENTER);
+   }
+}
+
+class GUICard
+{
+   // Data
+   private static Icon[][] iconCards = new ImageIcon[14][4];
+   private static Icon iconBack;
+   static boolean iconsLoaded = false;
+   
+   //
+   static void loadCardIcons()
+   {
+      if (iconsLoaded)
+      {
+         System.out.println("Icons have already been loaded");
+      }
+      else
+      {
+         iconBack = new ImageIcon("images/BK.gif");
+         for (int val = 0; val < 14; val++)
+         {
+            for (int suit = 0; suit < 4; suit++)
+            {
+               iconCards[val][suit] = new ImageIcon("images/" + 
+               turnIntIntoCardValue(val) + turnIntIntoCardSuit(suit) + ".gif");
+            }
+         }
+      }
+   }
+   
+   // turns 0 - 13 into "A", "2", "3", ... "Q", "K", "X"
+   static String turnIntIntoCardValue(int k)
+   {
+      String val = "A23456789TJQKX";
+      return val.substring(k, k + 1);
+   }
+   
+   // turns 0 - 3 into "C", "D", "H", "S"
+   static String turnIntIntoCardSuit(int j)
+   {
+      String suit = "CDHS";
+      return suit.substring(j, j + 1);
+   }
+   
+   // Accessors
+   public static Icon getIcon(Card card)
+   {
+      return iconCards[valueAsInt(card)][suitAsInt(card)];
+   }
+   
+   public static Icon getBackCardIcon() 
+   {
+      return iconBack;
+   }
+   
+   //
+   static int valueAsInt(Card card)
+   {
+      String val = "A23456789TJQKX";
+      for (int i = 0; i < 14; i++)
+      {
+         if (card.getValue() == val.charAt(i))
+         {
+            return i;
+         }
+      }
+      return -1;
+   }
+   
+   //
+   static int suitAsInt(Card card)
+   {
+      int i = 0;
+      for (Card.Suit suit : Card.Suit.values())
+      {
+         if (card.getSuit().equals(suit))
+         {
+            return i;
+         }
+         i++;
+      }
+      return -1;
+   }
+}
+
+class Card
+{
+   // Data
+   public static enum Suit { clubs, spades, hearts, diamonds };
+   public static char[] valuRanks = {'2', '3', '4', '5', '6', '7', '8',
+         '9', 'T', 'J', 'Q', 'K', 'A', 'X'};
+   private char value;
+   private Suit suit;
+   private boolean errorFlag;
+
+   // Constructors
+   public Card()
+   {
+      set('A', Suit.spades);
+   }
+
+   public Card(char value, Suit suit)
+   {
+      set(value, suit);
+   }
+
+   // Mutator
+   public boolean set(char value, Suit suit)
+   {
+      this.value = value;
+      this.suit = suit;
+
+      if (isValid(value, suit))
+      {
+         errorFlag = false;
+         return true;
+      } else
+      {
+         errorFlag = true;
+         return false;
+      }
+   }
+   
+   // Display the card data
+   public String toString()
+   {
+      if (errorFlag || this == null)
+      {
+         return "** illegal **";
+      } 
+      else
+      {
+         return value + " of " + suit;
+      }
+   }
+
+   // Accessors
+   public char getValue()
+   {
+      return value;
+   }
+
+   public Suit getSuit()
+   {
+      return suit;
+   }
+
+   public boolean getErrorFlag()
+   {
+      return errorFlag;
+   }
+
+   // Returns true if the members are identical
+   public boolean equals(Card card)
+   {
+      if (this.getValue() == card.getValue() && 
+          this.getSuit() == card.getSuit() &&
+          this.getErrorFlag() == card.getErrorFlag())
+      {
+         return true;
+      } 
+      else
+      {
+         return false;
+      }
+   }
+
+   // checks for the legality of the parameters
+   private boolean isValid(char value, Suit suit)
+   {
+      // Check validity of value
+      String vals = "A23456789TJQKX";
+      for (int i = 0; i < 14; i++)
+      {
+         if (value == vals.charAt(i))
+         {
+            return true;
+         }
+      }
+      return false;
+   }
+   
+   // Sort method helper
+   private static int cardToInt(Card card)
+   {
+      for (int i = 0; i < valuRanks.length; i++)
+      {
+         if (card.getValue() == valuRanks[i])
+         {
+            return i;
+         }
+      }
+      return -1;
+   }
+   
+   // Bubble sort
+   static void arraySort(Card[] cardArr, int arraySize)
+   {
+      Card temp;
+      int swaps = 0;
+      boolean sorted = false;
+      while (!sorted)
+      {
+         for (int element = 0; element < arraySize - 1; element++)
+         {
+            if (cardToInt(cardArr[element]) > cardToInt(cardArr[element + 1]))
+            {
+               temp = cardArr[element];
+               cardArr[element] = cardArr[element + 1];
+               cardArr[element + 1] = temp;
+               swaps++;
+            }
+         }
+         if (swaps == 0)
+            sorted = true;
+         else
+            swaps = 0;
+      }
+   }
+}
+
+class Hand
+{
+   // Variables and Arrays
+   public static final int MAX_CARDS = 50;
+   private Card[] myCards = new Card[MAX_CARDS];
+   private int numCards;
+
+   // Constructor
+   Hand()
+   {
+      for (int i = 0; i < MAX_CARDS; i++)
+      {
+         this.myCards[i] = new Card();
+      }
+      numCards = 0;
+   }
+
+   // Removes all the cards from the hand
+   public void resetHand()
+   {
+      myCards = new Card[MAX_CARDS];
+   }
+   
+   // Sort cards
+   public void sort()
+   {
+      Card.arraySort(myCards, numCards);
+   }
+
+   // Adds card to myCard array
+   public boolean takeCard(Card card)
+   {
+      if (numCards <= MAX_CARDS)
+      {
+         this.myCards[numCards] = new Card(card.getValue(), card.getSuit());
+         numCards++;
+         return true;
+      } else
+      {
+         return false;
+      }
+   }
+
+   // returns and removes the top card of the array
+   public Card playCard(int cardIndex)
+   {
+      if ( numCards == 0 ) //error
+      {
+         //Creates a card that does not work
+         return new Card('M', Card.Suit.spades);
+      }
+      //Decreases numCards.
+      Card card = myCards[cardIndex];
+      
+      numCards--;
+      for(int i = cardIndex; i < numCards; i++)
+      {
+         myCards[i] = myCards[i+1];
+      }
+      
+      myCards[numCards] = null;
+      
+      return card;
+    }
+
+   // Display the hand
+   public String toString()
+   {
+      String strCards = "Hand = ( ";
+      for (int i = 0; i < numCards; i++)
+      {
+         strCards += myCards[i].toString() + ", ";
+      }
+      return strCards.substring(0, strCards.length() - 2) + " )";
+   }
+
+   // numCard Accessor
+   public int getnumCards()
+   {
+      return numCards;
+   }
+
+   // Accessor for individual cards
+   public Card inspectCard(int k)
+   {
+      if (k < 0 || k > numCards)
+      {
+         Card badCard = new Card();
+         badCard.set('M', Card.Suit.clubs);
+         return badCard;
+      } else
+      {
+         return myCards[k];
+      }
+   }
+}
+
+class Deck
+{
+   // Variables and arrays
+   Random rand = new Random();
+   public static final int DECK_COUNT = 56;
+   public static final int MAX_CARDS = 6 * DECK_COUNT;
+   private static Card[] masterPack;
+   private Card[] cards;
+   private int topCard;
+
+   // Constructors
+   Deck(int numPacks)
+   {
+      allocateMasterPack();
+      init(numPacks);
+   }
+
+   Deck()
+   {
+      this(1);
+   }
+
+   // Re-populates card[]
+   public void init(int numPacks)
+   {
+      this.topCard = DECK_COUNT * numPacks;
+      this.cards = new Card[topCard];
+      for (int i = 0; i < numPacks; i++)
+      {
+         for (int j = 0; j < masterPack.length; j++)
+         {
+            cards[j + (DECK_COUNT*i)] = masterPack[j];
+         }
+      }
+   }
+
+   // Mixes up the cards
+   public void shuffle()
+   {
+      for (int i = 0; i < cards.length; i++)
+      {
+         int num = rand.nextInt(cards.length);
+         Card temp = cards[i];
+         cards[i] = cards[num];
+         cards[num] = temp;
+      }
+   }
+
+   // Returns and removes the top card
+   public Card dealCard()
+   {
+      topCard--;
+      Card top = new Card(inspectCard(topCard).getValue(),
+            inspectCard(topCard).getSuit());
+      cards[topCard] = null;
+      return top;
+   }
+
+   // Accessors
+   public int getTopCard()
+   {
+      return topCard;
+   }
+   
+   public int getNumCards()
+   {
+      return topCard;
+   }
+   
+   // Bubble sort
+   public void sort()
+   {
+      Card.arraySort(cards, topCard);
+   }
+
+   // Accessor for individual cards
+   public Card inspectCard(int k)
+   {
+      if (k < 0 || k > topCard - 1)
+      {
+         Card badCard = new Card();
+         badCard.set('M',Card.Suit.clubs);
+         return badCard;
+      } else
+      {
+         return cards[k];
+      }
+   }
+   
+   // Adds a card to the top of the deck and makes sure that there are
+   // not too many instances of the card in the deck
+   public boolean addCard(Card card)
+   {
+      // counter of instances of the card
+      int count = checkOccurences(card);
+
+      // Should be less than number of packs
+      if (count >= (cards.length % (DECK_COUNT - 1)))
+      {
+         System.out.println("Error: too many instances of the card");
+         return false;
+      }
+      else
+      {
+         // Take added card as a top card
+         cards[topCard] = new Card(card.getValue(), card.getSuit());
+         topCard++;
+         return true;
+      }
+   }
+   
+   // helper to count occurences of specific card
+   private int checkOccurences(Card card)
+   {
+   // counter of instances of the card
+      int count = 0;
+
+      // inspect all cards for the occurrence
+      for (int i = 0; i < topCard; i++)
+      {
+         if (card.equals(cards[i]))
+         {
+            count++;
+         }
+      }
+      return count;
+   }
+   
+   // removes specific card from the deck
+   // put the current top card into its place
+   // if it is not in the deck, return false
+   public boolean removeCard(Card card)
+   {
+      
+      int count = checkOccurences(card);
+      if (count == 0)
+      {
+         return false;
+      }
+      else
+      {
+         // Find the card we need to remove
+         for (int i = 0; i < topCard; i++)
+         {
+            if (card.equals(cards[i]))
+            {
+               // Swap the card with the top card
+               cards[i] = cards[topCard - 1];
+               cards[topCard - 1] = null;
+               topCard--;
+            }
+         }  
+      }
+      return true;
+   }
+
+   // Static Deck object used for copying to another object. Only executes once.
+   private static void allocateMasterPack()
+   {
+      if (masterPack == null)
+      {
+         String values = "A23456789TJQKX";
+         masterPack = new Card[DECK_COUNT];
+         int i = 0;
+         for (int v = 0; v < values.length(); v++)
+         {
+            for (Card.Suit s : Card.Suit.values())
+            {
+               masterPack[i] = new Card(values.charAt(v), s);
+               i++;
+            }
+         }
+      }
+   }
+}
